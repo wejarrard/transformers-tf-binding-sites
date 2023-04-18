@@ -3568,11 +3568,12 @@ class PreTrainedTokenizerBase(SpecialTokensMixin, PushToHubMixin):
         """
         if max_length is None and len(ids) > self.model_max_length and verbose:
             if not self.deprecation_warnings.get("sequence-length-is-longer-than-the-specified-maximum", False):
-                logger.warning(
-                    "Token indices sequence length is longer than the specified maximum sequence length "
-                    f"for this model ({len(ids)} > {self.model_max_length}). Running this sequence through the model "
-                    "will result in indexing errors"
-                )
+                # logger.warning(
+                #     "Token indices sequence length is longer than the specified maximum sequence length "
+                #     f"for this model ({len(ids)} > {self.model_max_length}). Running this sequence through the model "
+                #     "will result in indexing errors"
+                # )
+                pass
             self.deprecation_warnings["sequence-length-is-longer-than-the-specified-maximum"] = True
 
     def _switch_to_input_mode(self):

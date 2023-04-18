@@ -1276,12 +1276,11 @@ class TapasTokenizer(PreTrainedTokenizer):
         # Check lengths
         if max_length is None and len(encoded_inputs["input_ids"]) > self.model_max_length and verbose:
             if not self.deprecation_warnings.get("sequence-length-is-longer-than-the-specified-maximum", False):
-                # logger.warning(
-                #     "Token indices sequence length is longer than the specified maximum sequence length "
-                #     f"for this model ({len(encoded_inputs['input_ids'])} > {self.model_max_length}). Running this "
-                #     "sequence through the model will result in indexing errors."
-                # )
-                pass
+                logger.warning(
+                    "Token indices sequence length is longer than the specified maximum sequence length "
+                    f"for this model ({len(encoded_inputs['input_ids'])} > {self.model_max_length}). Running this "
+                    "sequence through the model will result in indexing errors."
+                )
             self.deprecation_warnings["sequence-length-is-longer-than-the-specified-maximum"] = True
 
         # Padding
