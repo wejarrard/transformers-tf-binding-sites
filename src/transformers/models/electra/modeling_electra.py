@@ -234,10 +234,6 @@ class ElectraEmbeddings(nn.Module):
 
         # Add Chromosome to embeddings
         if chromosome is not None:
-            print(f"chromosome min: {chromosome.min()}, max: {chromosome.max()}")
-            print(f"chromosome_embeddings size: {self.chromosome_embeddings.num_embeddings}")
-            print("embeddings size: ", embeddings.size())
-            print("chromosome size: ", chromosome.size())
             embeddings += self.chromosome_embeddings(chromosome)
 
         # Add FC reads to embeddings
