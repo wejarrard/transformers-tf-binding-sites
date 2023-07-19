@@ -201,24 +201,27 @@ class ElectraEmbeddings(nn.Module):
     ) -> torch.Tensor:
         if input_ids is not None:
             input_shape = input_ids.size()
-            print(f"input_ids min: {input_ids.min()}, max: {input_ids.max()}")
         else:
             input_shape = inputs_embeds.size()[:-1]
 
         seq_length = input_shape[1]
 
         if position_ids is None:
-            position_ids = self.position_ids[:, past_key_values_length: seq_length + past_key_values_length]
-            print(f"position_ids min: {position_ids.min()}, max: {position_ids.max()}")
+            position_ids = self.position_ids[:,
+                                             past_key_values_length: seq_length + past_key_values_length]
 
+        # Setting the token_type_ids to the registered buffer in constructor where it is all zeros, which usually occurs
+        # when its auto-generated, registered buffer helps users when tracing the model without passing token_type_ids, solves
+        # issue #5664
         if token_type_ids is None:
             if hasattr(self, "token_type_ids"):
                 buffered_token_type_ids = self.token_type_ids[:, :seq_length]
-                buffered_token_type_ids_expanded = buffered_token_type_ids.expand(input_shape[0], seq_length)
+                buffered_token_type_ids_expanded = buffered_token_type_ids.expand(
+                    input_shape[0], seq_length)
                 token_type_ids = buffered_token_type_ids_expanded
             else:
-                token_type_ids = torch.zeros(input_shape, dtype=torch.long, device=self.position_ids.device)
-            print(f"token_type_ids min: {token_type_ids.min()}, max: {token_type_ids.max()}")
+                token_type_ids = torch.zeros(
+                    input_shape, dtype=torch.long, device=self.position_ids.device)
 
         if inputs_embeds is None:
             inputs_embeds = self.word_embeddings(input_ids)
@@ -229,21 +232,28 @@ class ElectraEmbeddings(nn.Module):
             position_embeddings = self.position_embeddings(position_ids)
             embeddings += position_embeddings
 
+        # Add Chromosome to embeddings
         if chromosome is not None:
-            embeddings += self.chromosome_embeddings(chromosome)
             print(f"chromosome min: {chromosome.min()}, max: {chromosome.max()}")
             print(f"chromosome_embeddings size: {self.chromosome_embeddings.num_embeddings}")
+            print("embeddings size: ", embeddings.size())
+            print("chromosome size: ", chromosome.size())
+            embeddings += self.chromosome_embeddings(chromosome)
 
+        # Add FC reads to embeddings
+        # read = self.fc_reads_embeddings(reads).view(
+        #     chr_embeddings.size(dim=0), -1, chr_embeddings.size(dim=2))
+        # embeddings += read
+
+        # Add matrix reads to embeddings
         if reads is not None:
             reads = reads.unsqueeze(-1)
             reads = torch.matmul(reads, self.reads_weights)
             embeddings += reads
-            print(f"reads min: {reads.min()}, max: {reads.max()}")
 
         embeddings = self.LayerNorm(embeddings)
         embeddings = self.dropout(embeddings)
         return embeddings
-
 
 
 # Copied from transformers.models.bert.modeling_bert.BertSelfAttention with Bert->Electra
